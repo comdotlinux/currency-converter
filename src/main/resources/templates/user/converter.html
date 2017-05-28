@@ -104,7 +104,10 @@
 				</div>
 			</div>
 		</form>
-	</div>
+		<form th:action="@{/user/home}" th:method="GET">
+			<input class="btn btn-success btn-default" name="home" type="submit" value="Goto Homepage" />
+		</form>
+		</div>
 		<div class="col-sm-9" th:if="${convertResult != null}">
 			<div class="alert alert-success"
 				th:if="${convertResult.response != null}"
