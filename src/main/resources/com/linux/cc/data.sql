@@ -1,2 +1,2 @@
--- INSERT INTO `role` VALUES (1,'USERS');
--- COMMIT;
+INSERT INTO `role` VALUES (1,'USERS');
+COMMIT;
