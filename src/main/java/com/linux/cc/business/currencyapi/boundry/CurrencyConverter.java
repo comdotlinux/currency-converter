@@ -29,8 +29,6 @@ import com.linux.cc.business.currencyapi.entity.ConvertRequest;
 import com.linux.cc.business.currencyapi.entity.ConvertResult;
 import com.linux.cc.business.currencyapi.entity.Currencies;
 import com.linux.cc.business.currencyapi.entity.Currency;
-import com.linux.cc.business.currencystore.boundry.CurrencyStoreBoundry;
-import com.linux.cc.business.currencystore.entity.HistoricalConversion;
 
 @Service
 public class CurrencyConverter {
@@ -43,9 +41,6 @@ public class CurrencyConverter {
 
 	@Inject
 	private CurrencyExchangeService ex;
-	
-	@Inject
-	private CurrencyStoreBoundry store;
 
 	@Cacheable(cacheNames = CURRENCIES_CACHE_NAME, key="#root.methodName")
 	public Optional<Currencies> getCurrencies() {
@@ -67,17 +62,7 @@ public class CurrencyConverter {
 	
 	@Cacheable(cacheNames = CURRENCY_CONVERT_CACHE_NAME, key = "#request.getCacheKey()")
 	public ConvertResult convert(ConvertRequest request) {
-		
-		BigDecimal res = convertUsingBaseRate(request);
-		HistoricalConversion conversion = new HistoricalConversion();
-		conversion.setAmount(request.getAmount());
-		conversion.setCurrencyFrom(request.getCurrencyFromCode());
-		conversion.setCurrencyTo(request.getCurrencyToCode());
-		conversion.setResult(res);
-		String date = null == request.getHistoricalDate() ? EMPTY : new SimpleDateFormat(ConvertRequest.DATE_FORMAT).format(request.getHistoricalDate());
-		conversion.setDate(date);
-		store.save(conversion);
-		return new ConvertResult(res);
+		return new ConvertResult(convertUsingBaseRate(request));
 	}
 	
 	private Map<String, BigDecimal> getConversionRates(JsonNode node) {

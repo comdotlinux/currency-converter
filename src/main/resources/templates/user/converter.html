@@ -16,6 +16,10 @@
 		  $("#datepicker").datepicker({
 			  dateFormat: "yy-mm-dd"
 		  });
+
+		  $('html, body').animate({
+			    scrollTop: ($('.alert.alert-success').last().offset().top)
+			},500);
 		});
 	</script>
 </head>
@@ -95,7 +99,7 @@
 						<input type="text" class="form-control" id="datepicker" name="datepicker" th:value="${#dates.format(convertRequest.historicalDate,dateFormat)}" th:field="*{historicalDate}"/>
 					</div><!-- /input-group -->
 					<hr/>
-					<button type="submit" class="btn btn-default btn-primary">Submit</button>
+					<button type="submit" id="convert" class="btn btn-default btn-primary">Submit</button>
 					<hr/>
 				</div>
 			</div>

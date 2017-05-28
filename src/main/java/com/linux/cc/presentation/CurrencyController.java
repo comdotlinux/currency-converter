@@ -1,5 +1,8 @@
 package com.linux.cc.presentation;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.inject.Inject;
@@ -7,6 +10,7 @@ import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -18,6 +22,8 @@ import org.springframework.web.servlet.ModelAndView;
 import com.linux.cc.business.currencyapi.boundry.CurrencyConverter;
 import com.linux.cc.business.currencyapi.entity.ConvertRequest;
 import com.linux.cc.business.currencyapi.entity.ConvertResult;
+import com.linux.cc.business.currencystore.boundry.CurrencyStoreBoundry;
+import com.linux.cc.business.currencystore.entity.HistoricalConversion;
 import com.linux.cc.business.security.boundry.UserService;
 import com.linux.cc.business.security.entity.User;
 
@@ -33,6 +39,11 @@ public class CurrencyController {
 	
 	@Inject
 	private UserService userService;
+	
+	
+	@Inject
+	private CurrencyStoreBoundry store;
+
 	
 	@GetMapping("/user/convert")
 	public ModelAndView currencyConverterPage() {
@@ -69,9 +80,23 @@ public class CurrencyController {
 			}
 			ConvertResult convertResult = converter.convert(convertRequest);
 			LOG.info("conversion result is {}", convertResult.getResponse());
+			store(convertRequest, convertResult, user);
 			mav.addObject(convertResult);
 		}
 		mav.addObject(convertRequest);
 		return mav;
+	}
+	
+	@Async
+	private void store(ConvertRequest request, ConvertResult result, User user) {
+		HistoricalConversion conversion = new HistoricalConversion();
+		conversion.setAmount(request.getAmount());
+		conversion.setCurrencyFrom(request.getCurrencyFromCode());
+		conversion.setCurrencyTo(request.getCurrencyToCode());
+		conversion.setResult(result.getResponse());
+		String date = null == request.getHistoricalDate() ? EMPTY : new SimpleDateFormat(ConvertRequest.DATE_FORMAT).format(request.getHistoricalDate());
+		conversion.setDate(date);
+		conversion.setUserId(user.getId());
+		store.save(conversion);
 	}
 }

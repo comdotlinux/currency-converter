@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
@@ -28,6 +29,7 @@ import com.linux.cc.business.security.boundry.JpaUserService;
 @Configuration
 @EnableCaching
 @EnableScheduling
+@EnableAsync
 public class Application extends WebMvcConfigurerAdapter {
 
 	public static void main(String[] args) {
