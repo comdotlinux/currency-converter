@@ -14,9 +14,8 @@ RUN curl -L -O http://artfiles.org/apache.org/maven/maven-3/${MAVEN_VERSION}/bin
 
 WORKDIR ${DEPLOYMENT_DIR}
 RUN ${WORKDIR}/apache-maven-${MAVEN_VERSION}/bin/mvn clean install
-EXPOSE 8080
 ENTRYPOINT java -jar target/currency-converter.jar
-
+EXPOSE 8080
 # OLD Dockerfile
 #FROM store/oracle/serverjre:8
 #COPY target/currency-converter.jar .
