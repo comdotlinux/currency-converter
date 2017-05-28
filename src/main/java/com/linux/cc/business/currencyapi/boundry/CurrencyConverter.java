@@ -3,7 +3,10 @@ package com.linux.cc.business.currencyapi.boundry;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +14,12 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -55,25 +60,94 @@ public class CurrencyConverter {
 		return Optional.ofNullable(c);
 	}
 	
-	@Scheduled(fixedDelay=10000000)
-	@CacheEvict(cacheNames = {CURRENCIES_CACHE_NAME, CURRENCY_CONVERT_CACHE_NAME}, allEntries = true)
-	public void evictCache() {
+//	@Scheduled(fixedDelay=10000)
+	@CacheEvict(cacheNames = CURRENCIES_CACHE_NAME, allEntries = true)
+	public void evictCacheScheduled() {
 		LOG.warn("Cache {} and {} evicted", CURRENCIES_CACHE_NAME, CURRENCY_CONVERT_CACHE_NAME);
 	}
 	
-	@Cacheable(cacheNames = CURRENCY_CONVERT_CACHE_NAME, key="#request.hashCode()")
-	public Optional<ConvertResult> convert(ConvertRequest request) {
-		Map<String, String> pathVariables = new HashMap<>();
-		pathVariables.put("base", request.getCurrencyFromCode());
-		ResponseEntity<JsonNode> response = ex.get("latest.json", JsonNode.class);
-		LOG.info("Response code for convert currency call is {}", response.getStatusCode());
-		JsonNode conversions = response.getBody();
-		Map<String, BigDecimal> conversionRate
-		conversions.get("rates").fields().forEachRemaining();
-		return Optional.ofNullable(response.getBody());
+	public ConvertResult convert(ConvertRequest request) {
+		
+		return new ConvertResult(convertUsingBaseRate(request));
 	}
 	
-	private Map<String, BigDecimal> getConversionRates() {
+	private Map<String, BigDecimal> getConversionRates(JsonNode node) {
+		final Map<String, BigDecimal> conversionRate = new HashMap<>();
+		if(null != node && node.has("rates")) {
+			node.get("rates").fields().forEachRemaining(e -> conversionRate.put(e.getKey(), BigDecimal.valueOf(e.getValue().asDouble(0.0))));
+		}
+		
+		return conversionRate;
+	}
+	
+	private Optional<JsonNode> callGetRates() {
 		ResponseEntity<JsonNode> response = ex.get("latest.json", JsonNode.class);
+		if(response.getStatusCode() == HttpStatus.OK) {
+			LOG.info("Rates retrieved from api.");
+			return Optional.ofNullable(response.getBody());
+		}
+		
+		return Optional.empty();
+		
+	}
+
+	private Optional<JsonNode> callGetHistoricalRates(Date historicalDate) {
+		ResponseEntity<JsonNode> response = ex.getWithParameters("historical/{date}.json", JsonNode.class, new SimpleDateFormat(ConvertRequest.DATE_FORMAT).format(historicalDate));
+		if(response.getStatusCode() == HttpStatus.OK) {
+			LOG.info("Rates retrieved from api.");
+			return Optional.ofNullable(response.getBody());
+		}
+		
+		return Optional.empty();
+	}
+	
+	@Cacheable(cacheNames = CURRENCY_CONVERT_CACHE_NAME, key = "#request.getCacheKey()")
+	public BigDecimal convertUsingBaseRate(ConvertRequest request) {
+		BigDecimal convertedValue = BigDecimal.ZERO;
+		
+		Optional<JsonNode> rates;
+		if(request.isGetHistoricalValues() && request.getHistoricalDate() != null) {
+			rates = callGetHistoricalRates(request.getHistoricalDate());	
+		} else {
+			rates = callGetRates();
+		}
+		
+		if(rates.isPresent()) {
+			JsonNode jsonNode = rates.get();
+			Map<String, BigDecimal> conversionRates = getConversionRates(jsonNode);
+			String baseCurrency = jsonNode.get("base").asText(EMPTY);
+			BigDecimal usdToFromConversionRate = conversionRates.getOrDefault(request.getCurrencyFromCode(), BigDecimal.ZERO);
+			LOG.info("Conversion rate from {} to {} is {}",baseCurrency, request.getCurrencyFromCode(), usdToFromConversionRate);
+			BigDecimal usdToToConversionRate = conversionRates.getOrDefault(request.getCurrencyToCode(), BigDecimal.ZERO);
+			LOG.info("Conversion rate from {} to {} is {}",baseCurrency, request.getCurrencyToCode(), usdToToConversionRate);
+	
+			if(isNotZero(usdToFromConversionRate) && isNotZero(usdToToConversionRate)) {
+				BigDecimal exchangeRate = BigDecimal.ZERO;
+				if(StringUtils.equals(baseCurrency, request.getCurrencyFromCode())) {
+					exchangeRate = usdToToConversionRate;
+				} else if(StringUtils.equals(baseCurrency, request.getCurrencyToCode())) {
+					exchangeRate = BigDecimal.ONE.divide(usdToFromConversionRate, usdToFromConversionRate.scale(), RoundingMode.HALF_EVEN);
+				} else {
+					exchangeRate = usdToToConversionRate.multiply(BigDecimal.ONE.divide(usdToFromConversionRate, usdToFromConversionRate.scale(), RoundingMode.HALF_EVEN));
+				}
+				LOG.info("Conversion Rate from {} to {} is {}", request.getCurrencyFromCode(), request.getCurrencyToCode(), exchangeRate);
+				
+				convertedValue = exchangeRate.multiply(request.getAmount());
+			}
+		}
+		return convertedValue;
+	}
+	
+
+	public static boolean isNotZero(BigDecimal input) {
+		if (input != null) {
+			return (BigDecimal.ZERO.compareTo(input) != 0);
+		}
+		return true;
+	}
+	
+	@CacheEvict(cacheNames = {CURRENCY_CONVERT_CACHE_NAME, CURRENCIES_CACHE_NAME}, allEntries = true)
+	public void evictCache() {
+		LOG.info("Cache {} and {} cleared. next call will be to the actual API.", CURRENCY_CONVERT_CACHE_NAME, CURRENCIES_CACHE_NAME);
 	}
 }

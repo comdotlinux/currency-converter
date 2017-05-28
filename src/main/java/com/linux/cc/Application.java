@@ -1,5 +1,7 @@
 package com.linux.cc;
 
+import static java.util.Arrays.asList;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.boot.SpringApplication;
@@ -16,8 +18,9 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import static java.util.Arrays.asList;
+
 import com.linux.cc.business.currencyapi.boundry.CurrencyConverter;
 import com.linux.cc.business.security.boundry.JpaUserService;
 
@@ -30,7 +33,7 @@ public class Application extends WebMvcConfigurerAdapter {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
-
+	
 	@Bean
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
 		HttpClient httpClient = HttpClientBuilder.create().build();

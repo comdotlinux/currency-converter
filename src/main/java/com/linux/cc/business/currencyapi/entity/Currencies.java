@@ -1,6 +1,9 @@
 package com.linux.cc.business.currencyapi.entity;
 
 import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.codec.binary.StringUtils;
 
 public class Currencies {
 
@@ -15,6 +18,9 @@ public class Currencies {
 		this.currencies = currencies;
 	}
 	
+	public Optional<String> getCurrencyName(String currencyCode) {
+		return currencies.stream().filter(c -> StringUtils.equals(c.getCurrencyCode(), currencyCode)).findAny().map(Currency::getCurrencyName);
+	}
 	
 
 }

@@ -1,8 +1,5 @@
 package com.linux.cc.business.currencyapi.control;
 
-import java.util.Map;
-import java.util.Optional;
-
 import javax.persistence.Transient;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +25,18 @@ public class CurrencyExchangeService {
 	
 	private static final String APP_ID_KEY = "app_id";
 	
-	public <T> ResponseEntity<T> get(String enpoint, Class<T> clazz, Optional<Map<String,String>> queryParams) {
+	
+	// TODO: Error handling for call failures.
+	public <T> ResponseEntity<T> get(String enpoint, Class<T> clazz) {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl).pathSegment(enpoint).queryParam(APP_ID_KEY, apiKey);
-		queryParams.ifPresent(qp -> qp.forEach(builder::queryParam));
 		return template.getForEntity(builder.toUriString(), clazz);
+	}
+	
+	
+	// TODO: Find elegant / Spring way of doing this endpoint parsing.
+	public <T> ResponseEntity<T> getWithParameters(String enpoint, Class<T> clazz, Object... args) {
+		StringBuilder uriBuilder = new StringBuilder(baseUrl).append("/").append(enpoint).append("?").append(APP_ID_KEY).append("=").append(apiKey);
+		return template.getForEntity(uriBuilder.toString(), clazz, args);
 	}
 	
 }

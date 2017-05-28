@@ -1,20 +1,25 @@
 package com.linux.cc.business.currencyapi.entity;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.format.annotation.DateTimeFormat;
 
 public class ConvertRequest {
 
+	public static final String DATE_FORMAT = "yyyy-MM-dd";
+	
 	private static final String PLEASE_SELECT_THE_SOURCE_CURRENCY = "*Please select the source currency.";
 	private static final String PLEASE_SELECT_THE_TARGET_CURRENCY = "*Please select the target currency.";
 
 	@NotNull(message = "*Please enter the amount you want to convert.")
-	@Min(value = 1, message = "Please enter any value greater than or equal to 1")
+	@Min(value = 1, message = "*Please enter any value greater than or equal to 1")
 	private BigDecimal amount;
 	
 	@Length(min = 3, max = 3, message = PLEASE_SELECT_THE_SOURCE_CURRENCY)
@@ -22,72 +27,118 @@ public class ConvertRequest {
 	
 	@Length(min = 3, max = 3, message = PLEASE_SELECT_THE_TARGET_CURRENCY)
 	private String currencyToCode;
+	
+	private boolean clearCache;
+	
+	private boolean getHistoricalValues;
+	
+	@Past(message = "*Please enter a date in the past.")
+	@DateTimeFormat(pattern = DATE_FORMAT)
+	private Date historicalDate;
 
+	/**
+	 * @return the amount
+	 */
 	public BigDecimal getAmount() {
 		return amount;
 	}
 
+	/**
+	 * @param amount the amount to set
+	 */
 	public void setAmount(BigDecimal amount) {
 		this.amount = amount;
 	}
 
+	/**
+	 * @return the currencyFromCode
+	 */
 	public String getCurrencyFromCode() {
 		return currencyFromCode;
 	}
 
+	/**
+	 * @param currencyFromCode the currencyFromCode to set
+	 */
 	public void setCurrencyFromCode(String currencyFromCode) {
 		this.currencyFromCode = currencyFromCode;
 	}
 
+	/**
+	 * @return the currencyToCode
+	 */
 	public String getCurrencyToCode() {
 		return currencyToCode;
 	}
 
+	/**
+	 * @param currencyToCode the currencyToCode to set
+	 */
 	public void setCurrencyToCode(String currencyToCode) {
 		this.currencyToCode = currencyToCode;
 	}
 
+	/**
+	 * @return the clearCache
+	 */
+	public boolean isClearCache() {
+		return clearCache;
+	}
+
+	/**
+	 * @param clearCache the clearCache to set
+	 */
+	public void setClearCache(boolean clearCache) {
+		this.clearCache = clearCache;
+	}
+
+	/**
+	 * @return the historicalDate
+	 */
+	public Date getHistoricalDate() {
+		return null != historicalDate ? new Date(historicalDate.getTime()) : null;
+	}
+
+	/**
+	 * @param historicalDate the historicalDate to set
+	 */
+	public void setHistoricalDate(Date historicalDate) {
+		this.historicalDate = null != historicalDate ? new Date(historicalDate.getTime()) : null;
+	}
+
+	/**
+	 * @return the getHistoricalValues
+	 */
+	public boolean isGetHistoricalValues() {
+		return getHistoricalValues;
+	}
+
+	/**
+	 * @param getHistoricalValues the getHistoricalValues to set
+	 */
+	public void setGetHistoricalValues(boolean getHistoricalValues) {
+		this.getHistoricalValues = getHistoricalValues;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
-		return "ConvertRequest [amount=" + amount + ", currencyFromCode=" + currencyFromCode + ", currencyToCode=" + currencyToCode + "]";
+		StringBuilder builder = new StringBuilder();
+		builder.append("ConvertRequest [amount=").append(amount).append(", currencyFromCode=").append(currencyFromCode).append(", currencyToCode=")
+						.append(currencyToCode).append(", clearCache=").append(clearCache).append(", getHistoricalValues=").append(getHistoricalValues)
+						.append(", historicalDate=").append(new SimpleDateFormat(DATE_FORMAT).format(historicalDate)).append("]");
+		return builder.toString();
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((amount == null) ? 0 : amount.hashCode());
-		result = prime * result + ((currencyFromCode == null) ? 0 : currencyFromCode.hashCode());
-		result = prime * result + ((currencyToCode == null) ? 0 : currencyToCode.hashCode());
-		return result;
+	public String getCacheKey() {
+		return new StringBuilder("ConvertRequest-").append(amount.toString()).append(currencyFromCode).append("-").append(currencyToCode).toString();
 	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ConvertRequest other = (ConvertRequest) obj;
-		if (amount == null) {
-			if (other.amount != null)
-				return false;
-		} else if (!amount.equals(other.amount))
-			return false;
-		if (currencyFromCode == null) {
-			if (other.currencyFromCode != null)
-				return false;
-		} else if (!currencyFromCode.equals(other.currencyFromCode))
-			return false;
-		if (currencyToCode == null) {
-			if (other.currencyToCode != null)
-				return false;
-		} else if (!currencyToCode.equals(other.currencyToCode))
-			return false;
-		return true;
-	}
+	
+	
 
 	
+
+
 }

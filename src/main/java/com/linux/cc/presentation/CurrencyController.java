@@ -1,5 +1,7 @@
 package com.linux.cc.presentation;
 
+import java.util.Date;
+
 import javax.inject.Inject;
 import javax.validation.Valid;
 
@@ -39,7 +41,10 @@ public class CurrencyController {
 		User user = userService.findUserByEmail(auth.getName());
 		mav.addObject(user);
 		converter.getCurrencies().ifPresent(mav::addObject);
-		mav.addObject("convertRequest", new ConvertRequest());
+		ConvertRequest req = new ConvertRequest();
+		req.setHistoricalDate(new Date());
+		mav.addObject("dateFormat", ConvertRequest.DATE_FORMAT);
+		mav.addObject("convertRequest", req);
 		mav.addObject("convertResult", new ConvertResult());
 		return mav;
 	}
@@ -50,10 +55,22 @@ public class CurrencyController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		User user = userService.findUserByEmail(auth.getName());
 		mav.addObject(user);
+		mav.addObject("dateFormat", ConvertRequest.DATE_FORMAT);
 		converter.getCurrencies().ifPresent(mav::addObject);
-		LOG.info("Validation result? {}", result.hasErrors());
+		boolean hasErrors = result.hasErrors();
+		LOG.info("Validation result? {}", hasErrors);
 		LOG.info("{}", convertRequest);
-		converter.convert(convertRequest).ifPresent(mav::addObject);
+		if(hasErrors) {
+			mav.addObject("hasNoErrors", false);
+			
+		} else {
+			if(convertRequest.isClearCache()) {
+				converter.evictCache();
+			}
+			ConvertResult convertResult = converter.convert(convertRequest);
+			LOG.info("conversion result is {}", convertResult.getResponse());
+			mav.addObject(convertResult);
+		}
 		mav.addObject(convertRequest);
 		return mav;
 	}
