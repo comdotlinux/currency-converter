@@ -1,118 +1,117 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:th="http://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title>Currency Converter</title>
-	<link rel="stylesheet" type="text/css" th:href="@{/css/home.css}" />
-	<link rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css"/>
-	<link rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap-theme.min.css"/>
-	<link rel="stylesheet" href="/webjars/jquery-ui/1.12.1/jquery-ui.min.css"/>
+    <title>Currency Converter</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/home.css}" />
+    <link rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="/webjars/jquery-ui/1.12.1/jquery-ui.min.css" />
     <script src="/webjars/jquery/3.2.0/jquery.min.js"></script>
     <script src="/webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="/webjars/jquery-ui/1.12.1/jquery-ui.min.js"></script>
-	<script>
-		$(function() {
-		  $("#datepicker").datepicker({
-			  dateFormat: "yy-mm-dd"
-		  });
+    <script>
+        $(function() {
+            $("#datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
 
-		  $('html, body').animate({
-			    scrollTop: ($('.alert.alert-success').last().offset().top)
-			},500);
-		});
-	</script>
+            $('html, body').animate({
+                scrollTop: ($('.alert.alert-success').last().offset().top)
+            }, 500);
+        });
+    </script>
 </head>
 
 <body>
-	<div class="container page-header">
-		<div class="col-lg-12">
-  			<h1>Simple Currency converter   <small>using <a href="https://docs.openexchangerates.org/">Open Exchange Rates</a></small></h1>
-  		</div>
-			<div class="col-lg-9">
-			    <div class="input-group">
-			      <span class="label label-info" th:utext="${'User : ' + user.name + ' ' + user.lastName + ' (' + user.email + ')'}"></span>
-			      <div class="input-group-btn">
-			      		<form th:action="@{/logout}" th:method="GET"> 
-							<input class="btn btn-warning btn-xs" name="registration" type="submit" value="Logout"/>
-						</form>
-			      </div>
-			    </div>
-		  	</div>
-	</div>
-	<div class="container">
-		<div class="col-lg-9">
-			<form th:action="@{/user/convert}" th:method="POST" th:object="${convertRequest}">
-			    <div class="form-group">
-			    	<div class="col-sm-9">
-			    		<label th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}" class="validation-message"></label>
-			    		<div class="input-group">
-				    		<span class="input-group-addon" id="basic-addon3">Please enter amount to convert.</span>
-				      		<input type="text" class="form-control" placeholder="Enter amount" th:field="*{amount}" aria-describedby="basic-addon3"></input>
-			      		</div>
-					    <hr/>
-			      	</div>
-			    </div>
-				<div class="form-group">
-					<div class="col-sm-9">
-						<label th:if="${#fields.hasErrors('currencyFromCode')}" th:errors="*{currencyFromCode}" class="validation-message"></label>
-						<div class="input-group">
-							<span class="input-group-addon" id="basic-addon3">Please select source currency.</span>
-							<select class="form-control" th:field="*{currencyFromCode}" aria-describedby="basic-addon3">
+    <div class="container page-header">
+        <div class="col-lg-12">
+            <h1>Simple Currency converter <small>using <a href="https://docs.openexchangerates.org/">Open Exchange Rates</a></small></h1>
+        </div>
+        <div class="col-lg-9">
+            <div class="input-group">
+                <span class="label label-info" th:utext="${'User : ' + user.name + ' ' + user.lastName + ' (' + user.email + ')'}"></span>
+                <div class="input-group-btn">
+                    <form th:action="@{/logout}" th:method="GET">
+                        <input class="btn btn-warning btn-xs" name="registration" type="submit" value="Logout" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="col-lg-9">
+            <form th:action="@{/user/convert}" th:method="POST" th:object="${convertRequest}">
+                <div class="form-group">
+                    <div class="col-sm-9">
+                        <label th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}" class="validation-message"></label>
+                        <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon3">Please enter amount to convert.</span>
+                            <input type="text" class="form-control" placeholder="Enter amount" th:field="*{amount}" aria-describedby="basic-addon3"></input>
+                        </div>
+                        <hr></hr>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-9">
+                        <label th:if="${#fields.hasErrors('currencyFromCode')}" th:errors="*{currencyFromCode}" class="validation-message"></label>
+                        <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon3">Please select source currency.</span>
+                            <select class="form-control" th:field="*{currencyFromCode}" aria-describedby="basic-addon3">
 								<option value="">Select Source Currency</option>
 								<option th:each="currency : ${currencies.currencies}" th:value="${currency.currencyCode}" th:text="${currency.currencyName}" th:selected="${currencies.currencies.contains(currency.getCurrencyCode())}"></option>
 							</select>
-						</div>
-						<hr/>
-					</div>
-				</div>
-				<div class="form-group">
-					<div class="col-sm-9">
-						<label th:if="${#fields.hasErrors('currencyToCode')}" th:errors="*{currencyToCode}" class="validation-message"></label>
-						<div class="input-group">
-							<span class="input-group-addon" id="basic-addon3">Please select Target currency.</span>
-							<select class="form-control" th:field="*{currencyToCode}" aria-describedby="basic-addon3">
+                        </div>
+                        <hr></hr>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-9">
+                        <label th:if="${#fields.hasErrors('currencyToCode')}" th:errors="*{currencyToCode}" class="validation-message"></label>
+                        <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon3">Please select Target currency.</span>
+                            <select class="form-control" th:field="*{currencyToCode}" aria-describedby="basic-addon3">
 								<option value="">Select Target Currency</option>
 								<option th:each="currency : ${currencies.currencies}" th:value="${currency.currencyCode}" th:text="${currency.currencyName}" th:selected="${currencies.currencies.contains(currency.getCurrencyCode())}"></option>
 							</select>
-						</div>
-						<hr/>
-					</div>
-			  </div>
-				<div class="form-group">
-					<div class="col-sm-9">
-						<div class="input-group">
-							<span class="input-group-addon" id="basic-addon3"><label for="clearCache">Clear all Caches?</label></span>
-							<input type="checkbox" aria-describedby="basic-addon3" id="clearCache" th:checked="*{clearCache}" th:field="*{clearCache}" />
-							<div th:if="${hasNoErrors}">
-								<span class="input-group-addon" th:if="${convertRequest.clearCache}">All Caches were cleared.</span>
-							</div>
-						</div>
-						<hr/>
-					</div>
-				</div>
-				<div class="form-group">
-				<div class="col-sm-9">
-					<div class="input-group">
-						<input type="checkbox" aria-describedby="basic-addon3" id="getHistoricalValues" th:checked="*{getHistoricalValues}" th:field="*{getHistoricalValues}"/>
-						<span class="input-group-addon input-group-sm" id="basic-addon3">Select a date to get historical value</span>
-						<input type="text" class="form-control" id="datepicker" name="datepicker" th:value="${#dates.format(convertRequest.historicalDate,dateFormat)}" th:field="*{historicalDate}"/>
-					</div><!-- /input-group -->
-					<hr/>
-					<button type="submit" id="convert" class="btn btn-default btn-primary">Submit</button>
-					<hr/>
-				</div>
-			</div>
-		</form>
-		<form th:action="@{/user/home}" th:method="GET">
-			<input class="btn btn-success btn-default" name="home" type="submit" value="Goto Homepage" />
-		</form>
-		</div>
-		<div class="col-sm-9" th:if="${convertResult != null}">
-			<div class="alert alert-success"
-				th:if="${convertResult.response != null}"
-				th:utext="${convertRequest.amount + ' ' + currencies.getCurrencyName(convertRequest.currencyFromCode).get() + ' is ' + convertResult.response + ' ' + currencies.getCurrencyName(convertRequest.currencyToCode).get()}"></div>
-		</div>
-	</div>
+                        </div>
+                        <hr></hr>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon3"><label for="clearCache">Clear all Caches?</label></span>
+                            <input type="checkbox" aria-describedby="basic-addon3" id="clearCache" th:checked="*{clearCache}" th:field="*{clearCache}" />
+                            <div th:if="${hasNoErrors}">
+                                <span class="input-group-addon" th:if="${convertRequest.clearCache}">All Caches were cleared.</span>
+                            </div>
+                        </div>
+                        <hr></hr>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="checkbox" aria-describedby="basic-addon3" id="getHistoricalValues" th:checked="*{getHistoricalValues}" th:field="*{getHistoricalValues}" />
+                            <span class="input-group-addon input-group-sm" id="basic-addon3">Select a date to get historical value</span>
+                            <input type="text" class="form-control" id="datepicker" name="datepicker" th:value="${#dates.format(convertRequest.historicalDate,dateFormat)}" th:field="*{historicalDate}" />
+                        </div>
+                        <!-- /input-group -->
+                        <hr></hr>
+                        <button type="submit" id="convert" class="btn btn-default btn-primary">Submit</button>
+                        <hr></hr>
+                    </div>
+                </div>
+            </form>
+            <form th:action="@{/user/home}" th:method="GET">
+                <input class="btn btn-success btn-default" name="home" type="submit" value="Goto Homepage" />
+            </form>
+        </div>
+        <div class="col-sm-9" th:if="${convertResult != null}">
+            <div class="alert alert-success" th:if="${convertResult.response != null}" th:utext="${convertRequest.amount + ' ' + currencies.getCurrencyName(convertRequest.currencyFromCode).get() + ' is ' + convertResult.response + ' ' + currencies.getCurrencyName(convertRequest.currencyToCode).get()}"></div>
+        </div>
+    </div>
 </body>
+
 </html>

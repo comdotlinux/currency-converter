@@ -1,0 +1,44 @@
+version: '2'
+services:
+    currency-converter:
+        image: comdotlinux/currency-converter
+        container_name: "currency-converter"
+        depends_on:
+            - dbinstance
+        networks:
+            net:
+        ports: 
+            - "8080:8080"
+    
+    phpmyadmincc:
+        image: phpmyadmin/phpmyadmin
+        container_name: "phpmyadmincc"
+        depends_on:
+            - dbinstance
+        environment: 
+            - "PMA_HOST=dbinstance"
+            - "MYSQL_ROOT_PASSWORD=p1GtTYll6jN3"
+            - "MYSQL_USER=adminqjiBcb3"
+            - "MYSQL_PASSWORD=2gp4HtZ1dz6u"
+        networks:
+            net:
+        ports:
+            - "80:80"
+
+    dbinstance:
+        image: mysql
+        container_name: "dbinstance"
+        networks: 
+            net:
+        environment: 
+            - "MYSQL_ROOT_PASSWORD=p1GtTYll6jN3"
+            - "MYSQL_DATABASE=currencyconverterdb"
+            - "MYSQL_USER=adminqjiBcb3"
+            - "MYSQL_PASSWORD=2gp4HtZ1dz6u"
+#        volumes: 
+#            - "/c/Users/comdotlinux/Github-Projects/TasteOfJavaEE7/sakila/mysql-sakila.sql:/docker-entrypoint-initdb.d/mysql-sakila.sql:ro"
+#            - "/c/Users/comdotlinux/Github-Projects/sakila:/var/lib/mysql"
+networks: 
+    net:
+        driver: bridge
+
