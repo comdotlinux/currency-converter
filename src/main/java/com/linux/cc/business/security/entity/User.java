@@ -12,12 +12,17 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.Pattern;
 
-import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.Transient;
 
+/**
+ * @author comdotlinux
+ * EMAIL_REGULAR_EXPRESSION used / copied from <a href="https://stackoverflow.com/questions/8204680/java-regex-email/13013056#13013056">stackoverflow answer</a>
+ *
+ */
 @Entity
 @Table(name = "user")
 public class User {
@@ -30,7 +35,7 @@ public class User {
 	private int id;
 	
 	@Column(name = "email")
-	@Email(message = "*Please provide a valid Email", regexp = EMAIL_REGULAR_EXPRESSION)
+	@Pattern(message = "*Please provide a valid Email", regexp = EMAIL_REGULAR_EXPRESSION)
 	@NotEmpty(message = "*Please provide an email")
 	private String email;
 	

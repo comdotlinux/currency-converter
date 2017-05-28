@@ -21,7 +21,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,6 +29,8 @@ import com.linux.cc.business.currencyapi.entity.ConvertRequest;
 import com.linux.cc.business.currencyapi.entity.ConvertResult;
 import com.linux.cc.business.currencyapi.entity.Currencies;
 import com.linux.cc.business.currencyapi.entity.Currency;
+import com.linux.cc.business.currencystore.boundry.CurrencyStoreBoundry;
+import com.linux.cc.business.currencystore.entity.HistoricalConversion;
 
 @Service
 public class CurrencyConverter {
@@ -42,6 +43,9 @@ public class CurrencyConverter {
 
 	@Inject
 	private CurrencyExchangeService ex;
+	
+	@Inject
+	private CurrencyStoreBoundry store;
 
 	@Cacheable(cacheNames = CURRENCIES_CACHE_NAME, key="#root.methodName")
 	public Optional<Currencies> getCurrencies() {
@@ -60,15 +64,20 @@ public class CurrencyConverter {
 		return Optional.ofNullable(c);
 	}
 	
-//	@Scheduled(fixedDelay=10000)
-	@CacheEvict(cacheNames = CURRENCIES_CACHE_NAME, allEntries = true)
-	public void evictCacheScheduled() {
-		LOG.warn("Cache {} and {} evicted", CURRENCIES_CACHE_NAME, CURRENCY_CONVERT_CACHE_NAME);
-	}
 	
+	@Cacheable(cacheNames = CURRENCY_CONVERT_CACHE_NAME, key = "#request.getCacheKey()")
 	public ConvertResult convert(ConvertRequest request) {
 		
-		return new ConvertResult(convertUsingBaseRate(request));
+		BigDecimal res = convertUsingBaseRate(request);
+		HistoricalConversion conversion = new HistoricalConversion();
+		conversion.setAmount(request.getAmount());
+		conversion.setCurrencyFrom(request.getCurrencyFromCode());
+		conversion.setCurrencyTo(request.getCurrencyToCode());
+		conversion.setResult(res);
+		String date = null == request.getHistoricalDate() ? EMPTY : new SimpleDateFormat(ConvertRequest.DATE_FORMAT).format(request.getHistoricalDate());
+		conversion.setDate(date);
+		store.save(conversion);
+		return new ConvertResult(res);
 	}
 	
 	private Map<String, BigDecimal> getConversionRates(JsonNode node) {
@@ -101,8 +110,7 @@ public class CurrencyConverter {
 		return Optional.empty();
 	}
 	
-	@Cacheable(cacheNames = CURRENCY_CONVERT_CACHE_NAME, key = "#request.getCacheKey()")
-	public BigDecimal convertUsingBaseRate(ConvertRequest request) {
+	private BigDecimal convertUsingBaseRate(ConvertRequest request) {
 		BigDecimal convertedValue = BigDecimal.ZERO;
 		
 		Optional<JsonNode> rates;
@@ -149,5 +157,11 @@ public class CurrencyConverter {
 	@CacheEvict(cacheNames = {CURRENCY_CONVERT_CACHE_NAME, CURRENCIES_CACHE_NAME}, allEntries = true)
 	public void evictCache() {
 		LOG.info("Cache {} and {} cleared. next call will be to the actual API.", CURRENCY_CONVERT_CACHE_NAME, CURRENCIES_CACHE_NAME);
+	}
+
+	//	@Scheduled(fixedDelay=10000)
+	@CacheEvict(cacheNames = CURRENCIES_CACHE_NAME, allEntries = true)
+	public void evictCacheScheduled() {
+		LOG.warn("Cache {} and {} evicted", CURRENCIES_CACHE_NAME, CURRENCY_CONVERT_CACHE_NAME);
 	}
 }

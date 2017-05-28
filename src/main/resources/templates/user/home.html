@@ -31,8 +31,25 @@
 				<div class="panel-body">
 					<img src="https://openexchangerates.org/zfoxr/images/latest-json-preview.png" class="img-responsive center-block" width="400" height="400" alt="https://openexchangerates.org" /> 
 				</div>
-				<p class="admin-message-text text-center" th:utext="${adminMessage}"></p>
 			</div>
+		    <table>
+		      <tr>
+		        <th>ID</th>
+		        <th>AMOUNT</th>
+		        <th>CURRENCY_FROM</th>
+		        <th>CURRENCY_TO</th>
+		        <th>WAS</th>
+		        <th>ON</th>
+		      </tr>
+		      <tr th:each="c : ${conversions}">
+		        <td th:text="${c.userId}">Onions</td>
+		        <td th:text="${c.amount}">Onions</td>
+		        <td th:text="${c.currencyFrom}">EUR</td>
+		        <td th:text="${c.currencyTo}">yes</td>
+		        <td th:text="${c.result}">Onions</td>
+		        <td th:text="${c.date}">Onions</td>
+		      </tr>
+		    </table>
 		</div>
 		
 	</div>

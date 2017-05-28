@@ -36,7 +36,7 @@ public class JpaUserService implements UserService {
     public void saveUser(User user) {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         user.setActive(1);
-        Role userRole = roleRepository.findByRole("ADMIN");
+        Role userRole = roleRepository.findByRole("USERS");
         user.setRoles(new HashSet<>(asList(userRole)));
         userRepository.save(user);
     }

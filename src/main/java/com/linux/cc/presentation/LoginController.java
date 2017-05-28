@@ -1,17 +1,16 @@
 package com.linux.cc.presentation;
 
-import com.linux.cc.business.security.boundry.UserService;
-import com.linux.cc.business.security.entity.User;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.linux.cc.business.security.boundry.UserService;
+import com.linux.cc.business.security.entity.User;
 
 
 @Controller
@@ -56,16 +55,7 @@ public class LoginController {
 		return modelAndView;
 	}
 	
-	@RequestMapping(value="/user/home", method = RequestMethod.GET)
-	public ModelAndView home(){
-		ModelAndView modelAndView = new ModelAndView();
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		User user = userService.findUserByEmail(auth.getName());
-		modelAndView.addObject(user);
-		modelAndView.addObject("userContent","Content Available Only for Users with USER Role");
-		modelAndView.setViewName("user/home");
-		return modelAndView;
-	}
+
 	
 
 }
