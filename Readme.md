@@ -1,3 +1,7 @@
+Please try : https://currency-converter.cfapps.io/    if it is running to directly see the application in action.
+
+Please don't mind the CSS / styling. And the first time please click on the goto converter button from the homepage.
+
 Prerequisites : Good internet connection and a system where you have admin rights (to install docker)
 
 1. Install Docker
